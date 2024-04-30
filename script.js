@@ -10,8 +10,8 @@ function generateBoard() {
             cell.dataset.i = i; // Store the i index in the cell
             cell.dataset.j = j; // Store the j index in the cell
             cell.addEventListener('click', function() {
-                var i = this.dataset.i;
-                var j = this.dataset.j;
+                var i = parseInt(this.dataset.i);
+                var j = parseInt(this.dataset.j);
                 checkForMatch(i, j);
             });
             row.push(cell);
