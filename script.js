@@ -101,7 +101,49 @@ function checkForMatch(i, j) {
         matchFound = true;
     }
 
+    if (matchFound) {
+        for (var k = 0; k < horizontalMatch.length; k++) {
+            horizontalMatch[k].style.display = 'none';
+        }
+        for (var k = 0; k < verticalMatch.length; k++) {
+            verticalMatch[k].style.display = 'none';
+        }
+        refillBoard();
+    }
+
     return matchFound;
+}
+
+function refillBoard() {
+    var gameBoard = document.getElementById('game-board');
+    for (var j = 0; j < 10; j++) {
+        for (var i = 9; i >= 0; i--) {
+            if (board[i][j].style.display === 'none') {
+                if (i === 0) {
+                    // Generate a new cell at the top
+                    var cell = document.createElement('div');
+                    cell.className = 'cell ' + colors[Math.floor(Math.random() * colors.length)];
+                    cell.dataset.i = i;
+                    cell.dataset.j = j;
+                    cell.addEventListener('click', function() {
+                        var i = parseInt(this.dataset.i);
+                        var j = parseInt(this.dataset.j);
+                        if (checkForMatch(i, j)) {
+                            score += 50;
+                            document.getElementById('score').textContent = 'Pontszám: ' + score;
+                        }
+                    });
+                    board[i][j] = cell;
+                    gameBoard.childNodes[i * 10 + j].replaceWith(cell);
+                } else {
+                    // Move the cell above down
+                    board[i][j].className = board[i - 1][j].className;
+                    board[i - 1][j].style.display = 'none';
+                    board[i][j].style.display = '';
+                }
+            }
+        }
+    }
 }
 
 generateBoard();
