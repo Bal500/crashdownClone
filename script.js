@@ -3,32 +3,33 @@ var colors = ['red', 'blue', 'green'];
 var score = 0;
 var timer = 300;
 
-// Countdown timer and end game logic
+// Timer és end game
 function startTimer() {
     var timerInterval = setInterval(function() {
         timer--;
         var minutes = Math.floor(timer / 60);
         var seconds = timer % 60;
         document.getElementById('timer').textContent = 'Idő: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-        if (timer <= 0 || !hasPossibleMoves()) {
+        if (timer <= 0) {
             clearInterval(timerInterval);
             alert('A játék véget ért! A végső pontszámod: ' + score);
         }
     }, 1000);
 }
 
+// Játéktér generálása
 function generateBoard() {
     for (var i = 0; i < 10; i++) {
         var row = [];
         for (var j = 0; j < 10; j++) {
             var cell = document.createElement('div');
             cell.className = 'cell ' + colors[Math.floor(Math.random() * colors.length)];
-            cell.dataset.i = i; // Store the i index in the cell
-            cell.dataset.j = j; // Store the j index in the cell
+            cell.dataset.i = i;
+            cell.dataset.j = j;
             cell.addEventListener('click', function() {
                 var i = parseInt(this.dataset.i);
                 var j = parseInt(this.dataset.j);
-                if (checkForMatch(i, j)) {
+                if (isValidMove(i, j)) {
                     score += 50;
                     document.getElementById('score').textContent = 'Pontszám: ' + score;
                 }
@@ -39,7 +40,8 @@ function generateBoard() {
     }
 }
 
-function renderBoard() {
+// Játéktér kirajzolása
+function fieldRendering() {
     var gameBoard = document.getElementById('game-board');
     for (var i = 0; i < board.length; i++) {
         for (var j = 0; j < board[i].length; j++) {
@@ -49,13 +51,14 @@ function renderBoard() {
     }
 }
 
-function checkForMatch(i, j) {
+// A kiválaszott négyzet megfelelő-e
+function isValidMove(i, j) {
     var color = board[i][j].className.split(' ')[1];
     var horizontalMatch = [board[i][j]];
     var verticalMatch = [board[i][j]];
     var matchFound = false;
 
-    // Check for horizontal match
+    // Horizontális
     for (var k = j + 1; k < board[i].length; k++) {
         if (board[i][k].className.split(' ')[1] === color) {
             horizontalMatch.push(board[i][k]);
@@ -71,7 +74,7 @@ function checkForMatch(i, j) {
         }
     }
 
-    // Check for vertical match
+    // Vertikális
     for (var k = i + 1; k < board.length; k++) {
         if (board[k][j].className.split(' ')[1] === color) {
             verticalMatch.push(board[k][j]);
@@ -87,7 +90,7 @@ function checkForMatch(i, j) {
         }
     }
 
-    // If a match is found, remove the cells
+    // Valid move esetén a mezők eltüntetése
     if (horizontalMatch.length >= 3) {
         for (var k = 0; k < horizontalMatch.length; k++) {
             horizontalMatch[k].style.visibility = 'hidden';
@@ -108,48 +111,67 @@ function checkForMatch(i, j) {
         for (var k = 0; k < verticalMatch.length; k++) {
             verticalMatch[k].style.display = 'none';
         }
-        refillBoard();
+        fieldLoader();
     }
 
     return matchFound;
 }
 
-// Check if there are any possible moves left
-function hasPossibleMoves() {
-    for (var i = 0; i < board.length; i++) {
-        for (var j = 0; j < board[i].length; j++) {
-            if (checkForPotentialMatch(i, j)) {
-                return true;
+// Potenciális lépést keres, ha nincs, megszakítja a játékot
+function potentialNextMove(i, j) {
+    var potentialTimer = setInterval(() => {
+        var color = board[i][j].className.split(' ')[1];
+        var horizontalMatch = [board[i][j]];
+        var verticalMatch = [board[i][j]];
+    
+        // Horizontális
+        for (var k = j + 1; k < board[i].length; k++) {
+            if (board[i][k].className.split(' ')[1] === color) {
+                horizontalMatch.push(board[i][k]);
+            } else {
+                break;
             }
         }
-    }
-    return false;
+        for (var k = j - 1; k >= 0; k--) {
+            if (board[i][k].className.split(' ')[1] === color) {
+                horizontalMatch.push(board[i][k]);
+            } else {
+                break;
+            }
+        }
+    
+        // Vertikális
+        for (var k = i + 1; k < board.length; k++) {
+            if (board[k][j].className.split(' ')[1] === color) {
+                verticalMatch.push(board[k][j]);
+            } else {
+                break;
+            }
+        }
+        for (var k = i - 1; k >= 0; k--) {
+            if (board[k][j].className.split(' ')[1] === color) {
+                verticalMatch.push(board[k][j]);
+            } else {
+                break;
+            }
+        }
+    
+        // Van lehetséges lépés
+        if (horizontalMatch.length < 3 || verticalMatch.length < 3) {
+            clearInterval(potentialTimer);
+            alert('A játék véget ért! A végső pontszámod: ' + score);
+        }
+    }, 5000);
 }
 
-// Check for potential match without changing the board
-function checkForPotentialMatch(i, j) {
-    var color = board[i][j].className.split(' ')[1];
 
-    // Check for horizontal match
-    if (j < board[i].length - 2 && board[i][j + 1].className.split(' ')[1] === color && board[i][j + 2].className.split(' ')[1] === color) {
-        return true;
-    }
-
-    // Check for vertical match
-    if (i < board.length - 2 && board[i + 1][j].className.split(' ')[1] === color && board[i + 2][j].className.split(' ')[1] === color) {
-        return true;
-    }
-
-    return false;
-}
-
-function refillBoard() {
+function fieldLoader() {
     var gameBoard = document.getElementById('game-board');
     for (var j = 0; j < 10; j++) {
         for (var i = 9; i >= 0; i--) {
             if (board[i][j].style.display === 'none') {
                 if (i === 0) {
-                    // Generate a new cell at the top
+                    // Új cellát hoz létre az első sorban
                     var cell = document.createElement('div');
                     cell.className = 'cell ' + colors[Math.floor(Math.random() * colors.length)];
                     cell.dataset.i = i;
@@ -157,7 +179,7 @@ function refillBoard() {
                     cell.addEventListener('click', function() {
                         var i = parseInt(this.dataset.i);
                         var j = parseInt(this.dataset.j);
-                        if (checkForMatch(i, j)) {
+                        if (isValidMove(i, j)) {
                             score += 50;
                             document.getElementById('score').textContent = 'Pontszám: ' + score;
                         }
@@ -165,7 +187,7 @@ function refillBoard() {
                     board[i][j] = cell;
                     gameBoard.childNodes[i * 10 + j].replaceWith(cell);
                 } else {
-                    // Move the cell above down
+                    // A felső cellát lemozgatja
                     board[i][j].className = board[i - 1][j].className;
                     board[i - 1][j].style.display = 'none';
                     board[i][j].style.display = '';
@@ -180,5 +202,5 @@ document.getElementById('restart').addEventListener('click', function() {
 });
 
 generateBoard();
-renderBoard();
+fieldRendering();
 startTimer();
