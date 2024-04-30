@@ -1,5 +1,21 @@
 var board = [];
 var colors = ['red', 'blue', 'green'];
+var score = 0;
+var timer = 300;
+
+    // Countdown timer and end game logic
+    function startTimer() {
+        var timerInterval = setInterval(function() {
+            timer--;
+            var minutes = Math.floor(timer / 60);
+            var seconds = timer % 60;
+            document.getElementById('timer').textContent = 'Idő: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            if (timer <= 0) {
+                clearInterval(timerInterval);
+                alert('Az idő lejárt! A végső pontszámod: ' + score);
+            }
+        }, 1000);
+    }
 
 function generateBoard() {
     for (var i = 0; i < 10; i++) {
@@ -12,7 +28,10 @@ function generateBoard() {
             cell.addEventListener('click', function() {
                 var i = parseInt(this.dataset.i);
                 var j = parseInt(this.dataset.j);
-                checkForMatch(i, j);
+                if (checkForMatch(i, j)) {
+                    score += 50;
+                    document.getElementById('score').textContent = 'Pontszám: ' + score;
+                }
             });
             row.push(cell);
         }
@@ -34,6 +53,7 @@ function checkForMatch(i, j) {
     var color = board[i][j].className.split(' ')[1];
     var horizontalMatch = [board[i][j]];
     var verticalMatch = [board[i][j]];
+    var matchFound = false;
 
     // Check for horizontal match
     for (var k = j + 1; k < board[i].length; k++) {
@@ -72,13 +92,18 @@ function checkForMatch(i, j) {
         for (var k = 0; k < horizontalMatch.length; k++) {
             horizontalMatch[k].style.visibility = 'hidden';
         }
+        matchFound = true;
     }
     if (verticalMatch.length >= 3) {
         for (var k = 0; k < verticalMatch.length; k++) {
             verticalMatch[k].style.visibility = 'hidden';
         }
+        matchFound = true;
     }
+
+    return matchFound;
 }
 
 generateBoard();
 renderBoard();
+startTimer();
