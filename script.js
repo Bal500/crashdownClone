@@ -3,19 +3,19 @@ var colors = ['red', 'blue', 'green'];
 var score = 0;
 var timer = 300;
 
-    // Countdown timer and end game logic
-    function startTimer() {
-        var timerInterval = setInterval(function() {
-            timer--;
-            var minutes = Math.floor(timer / 60);
-            var seconds = timer % 60;
-            document.getElementById('timer').textContent = 'Idő: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-            if (timer <= 0) {
-                clearInterval(timerInterval);
-                alert('Az idő lejárt! A végső pontszámod: ' + score);
-            }
-        }, 1000);
-    }
+// Countdown timer and end game logic
+function startTimer() {
+    var timerInterval = setInterval(function() {
+        timer--;
+        var minutes = Math.floor(timer / 60);
+        var seconds = timer % 60;
+        document.getElementById('timer').textContent = 'Idő: ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        if (timer <= 0 || !hasPossibleMoves()) {
+            clearInterval(timerInterval);
+            alert('A játék véget ért! A végső pontszámod: ' + score);
+        }
+    }, 1000);
+}
 
 function generateBoard() {
     for (var i = 0; i < 10; i++) {
@@ -114,6 +114,35 @@ function checkForMatch(i, j) {
     return matchFound;
 }
 
+// Check if there are any possible moves left
+function hasPossibleMoves() {
+    for (var i = 0; i < board.length; i++) {
+        for (var j = 0; j < board[i].length; j++) {
+            if (checkForPotentialMatch(i, j)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Check for potential match without changing the board
+function checkForPotentialMatch(i, j) {
+    var color = board[i][j].className.split(' ')[1];
+
+    // Check for horizontal match
+    if (j < board[i].length - 2 && board[i][j + 1].className.split(' ')[1] === color && board[i][j + 2].className.split(' ')[1] === color) {
+        return true;
+    }
+
+    // Check for vertical match
+    if (i < board.length - 2 && board[i + 1][j].className.split(' ')[1] === color && board[i + 2][j].className.split(' ')[1] === color) {
+        return true;
+    }
+
+    return false;
+}
+
 function refillBoard() {
     var gameBoard = document.getElementById('game-board');
     for (var j = 0; j < 10; j++) {
@@ -145,6 +174,10 @@ function refillBoard() {
         }
     }
 }
+
+document.getElementById('restart').addEventListener('click', function() {
+    location.reload();
+});
 
 generateBoard();
 renderBoard();
